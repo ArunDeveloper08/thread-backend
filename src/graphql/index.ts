@@ -1,49 +1,23 @@
 import { ApolloServer } from "@apollo/server";
 import { prismaClient } from "../lib/db";
+import { User } from "./user";
 async function createApolloGrapghqlServer(){
     const gqlserver = new ApolloServer({
         typeDefs: `
             type Query {
-                hello : String
-                say(name:String):String
+             ${User.queries}
             }
             type Mutation {
-             createUser(firstName:String! , lastName:String! , password:String! ,email:String!): Boolean
+            ${User.mutations}
             }
             `,
         resolvers: {
           Query: {
-            hello: () => `Hey there , I am a graphql server`,
-            say: (_, { name }: { name: String }) => `Hey ${name},How are you? `,
+            ...User.resolvers.queries,
           },
-          Mutation: {
-            createUser: async (
-              _,
-              {
-                firstName,
-                lastName,
-                email,
-                password,
-              }: {
-                firstName: string;
-                lastName: string;
-                email: string;
-                password: string;
-              }
-            ) => {
-      await prismaClient.user.create({
-        data : {
-            email,
-            firstName,
-            lastName,
-            password,
-            salt:'random_salt'
-        }
-      })
-      return true;
-    
-            },
-          },
+      Mutation:{
+        ...User.resolvers.mutations,
+      }
         },
       });
       //  start GraphQL server
